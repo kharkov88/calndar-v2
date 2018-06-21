@@ -1,69 +1,20 @@
 import React, { Component } from 'react'
 
 import Modal from './Modal'
-//[[{},{},{},{},{},{},{},{}],[],[],[],[]]
-const configWeek = ['sunday','mondey', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-const configMonths = [
-  {
-      title: 'january',
-      countDays: 31,
-      events: {
-        12: {value: 'event 1'}
-      }
-  },
-  {
-      title: 'february',
-      countDays: 28,
-      events: {
-        12: {value: 'event 1'}
-      }
-  },
-  {
-      title: 'march',
-      countDays: 31,
-      events: {
-        12: {value: 'event 1'}
-      }
-  },
-  {
-      title: 'april',
-      countDays: 31,
-      events: {
-        12: {value: 'event 1'}
-      }
-  },
-  {
-      title: 'may',
-      countDays: 31,
-      events: {
-        12: {value: 'event 1'}
-      }
-  },
-  {
-      title: 'june',
-      countDays: 30,
-      events: {
-        1: {value: 'event 1'},
-        2: {value: 'event 2'},
-        22: {value: 'event 3'}
-      }
-  },
-  {
-      title: 'july',
-      countDays: 31,
-      events: {
-        22: {value: 'event 1'}
-      }
-  }
-]
+import configMonths from './configs/configMonths'
+
+const configWeek = ['sunday', 'mondey', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+const YEAR = new Date().getUTCFullYear()
 
 class Calendar extends Component {
   constructor (props) {
     super(props)
     this.currentDate = new Date()
     this.firstDay = new Date(2018, this.currentDate.getMonth(), 1)
+    this.configMonths = (localStorage.configMonths && JSON.parse(localStorage.configMonths)) || configMonths
 
     this.state = {
+      year: YEAR,
       day: 1,
       date: 1,
       month: 1,
@@ -79,37 +30,40 @@ class Calendar extends Component {
     this.handleClickNext = this.handleClickNext.bind(this)
     this.handleClickEvent = this.handleClickEvent.bind(this)
     this.handleChangeEvent = this.handleChangeEvent.bind(this)
+    this.handleClickCloseModal = this.handleClickCloseModal.bind(this)
   }
   componentDidMount () {
     this.setState({
       day: this.currentDate.getDay(),
       date: this.currentDate.getDate(),
       month: this.currentDate.getMonth(),
-      currentMonth: configMonths[this.currentDate.getMonth()],
-      nextMonth: configMonths[this.currentDate.getMonth()+1],
-      prevMonth: configMonths[this.currentDate.getMonth()-1],
+      currentMonth: this.configMonths[this.currentDate.getMonth()],
+      nextMonth: this.configMonths[this.currentDate.getMonth() + 1],
+      prevMonth: this.configMonths[this.currentDate.getMonth() - 1],
       startMonth: this.firstDay
     })
+    if (!localStorage.configMonths) {
+      localStorage.configMonths = JSON.stringify(configMonths)
+    }
   }
+
   render () {
-    console.log(this.state)
-    let { currentMonth, startMonth } = this.state
+    let { year, currentMonth, startMonth } = this.state
     let rows = this.create42Days()
-    //rerender
+    // rerender
     return (
       <div>
         <Modal
           open={this.state.showModal}
-          close={this.handleClickEvent}
+          close={this.handleClickCloseModal}
           handleChangeEvent={this.handleChangeEvent}
           currentEvent={this.state.currentEvent}
         />
-        <p>Calendar</p>
         <div>
           <button onClick={this.handleClickPrev}>prev</button>
           <button onClick={this.handleClickNext}>next</button>
         </div>
-        <p>{currentMonth.title}</p>
+        <p>{year}  {currentMonth.title}</p>
         <div id='calendar-head'>
           <span>Sun</span>
           <span>Mon</span>
@@ -119,43 +73,68 @@ class Calendar extends Component {
           <span>Fri</span>
           <span>Sat</span>
         </div>
-        <Grid rows={rows} firstDay={startMonth.getDay()} updateEvent={this.handleClickEvent}/>
+        <Grid rows={rows} firstDay={startMonth.getDay()} updateEvent={this.handleClickEvent} />
       </div>
     )
   }
-  handleClickPrev() {
+  handleClickPrev () {
+    let {year, month} = this.state
+    if (month === 0) {
+      this.setState({
+        month: 11,
+        startMonth: new Date(year, 11, 1),
+        currentMonth: this.configMonths[11]
+      })
+    } else {
+      this.setState({
+        startMonth: new Date(year, month - 1, 1),
+        month: month - 1,
+        currentMonth: this.configMonths[month - 1]
+      })
+    }
+  }
+  handleClickNext () {
+    let {year, month} = this.state
+    if (month === 11) {
+      this.setState({
+        month: 0,
+        startMonth: new Date(year, 0, 1),
+        currentMonth: this.configMonths[0]
+      })
+    } else {
+      this.setState({
+        startMonth: new Date(year, month + 1, 1),
+        month: month + 1,
+        currentMonth: this.configMonths[month + 1]
+      })
+    }
+  }
+  handleClickCloseModal () {
     this.setState({
-      startMonth: new Date(2018, this.state.month-1, 1),
-      month: this.state.month-1,
-      currentMonth: configMonths[this.state.month-1]
+      showModal: !this.state.showModal,
+      currentMonth: this.configMonths[this.state.month]
     })
   }
-  handleClickNext() {
-    this.setState({
-      startMonth: new Date(2018, this.state.month+1, 1),
-      month: this.state.month+1,
-      currentMonth: configMonths[this.state.month+1]
-    })
-  }
-  handleClickEvent(item) {
+  handleClickEvent (item) {
     this.setState({
       showModal: !this.state.showModal,
       currentEvent: item
     })
     this.currentEvent = item
   }
-  handleChangeEvent(event) {
+  handleChangeEvent (event) {
     this.setState({
       currentEvent: Object.assign(
         {},
         this.state.currentEvent,
         {value: event.target.value}
-        )
+      )
     })
     this.currentEvent.value = event.target.value
+    localStorage.configMonths = JSON.stringify(this.configMonths)
   }
 
-  create42Days() {
+  create42Days () {
     let { currentMonth, startMonth } = this.state
     let start = startMonth.getDay()
     let { events } = currentMonth
@@ -164,18 +143,19 @@ class Calendar extends Component {
     let arr = []
     let a
     if (events) {
-      for (let i = 0; i < 42; i++){
+      for (let i = 0; i < 42; i++) {
         result[i] = null
       }
-      for (let i = 0; i < currentMonth.countDays; i++){
-        if (!events[i+1]) {
-          events[i+1] = { day: i+1, value:'' }
+      for (let i = 0; i < currentMonth.countDays; i++) {
+        if (!events[i + 1]) {
+          // debugger
+          events[i + 1] = { day: i + 1, value: '' }
         }
-        (events[i+1]) && (events[i+1].day = i+1)
-        result[i+start] = events[i+1]
+        (events[i + 1]) && (events[i + 1].day = i + 1)
+        result[i + start] = events[i + 1]
       }
-      for (let i =  0; i < 6; i++){
-        a = result.splice(0,7)
+      for (let i = 0; i < 6; i++) {
+        a = result.splice(0, 7)
         arr.push(a)
       }
       console.log(arr)
@@ -186,33 +166,32 @@ class Calendar extends Component {
 
 const Grid = (props) => {
   return (
-    props.rows.map( (item,ind) => {
+    props.rows.map((item, ind) => {
       return (
         <div className='week' key={ind}>
-          <Row week={item} updateEvent={props.updateEvent}/>
+          <Row week={item} updateEvent={props.updateEvent} />
         </div>
       )
     })
-    )
+  )
 }
 const Row = (props) => {
   return (
-    props.week.map( (item,ind) => {
-      if(item) {
+    props.week.map((item, ind) => {
+      if (item) {
         let classnames = item.value.length > 0 ? 'week-day has-event' : 'week-day'
         return (
           <span
             className={classnames}
             key={ind}
             onClick={() => props.updateEvent(item)}>
-            {item.day}<br/>{item.value}
+            {item.day}<br /><br /><br />
+            <span className='week-day-event'>{item.value.slice(0, 15)}</span>
           </span>
-          )
-      }
-      else
-        return <span className='week-day disabled' key={ind}></span>
+        )
+      } else { return <span className='week-day disabled' key={ind} /> }
     })
-    )
+  )
 }
 
 export default Calendar

@@ -1,22 +1,28 @@
-body {
+body, html {
   margin: 0;
   padding: 0;
   font-family: sans-serif;
+  width: 100%;
+  height: 100%;
 }
 .App {
   text-align: center;
 }
 
 .App-header {
+  width: 100%;
   background-color: #222;
   padding: 5px;
   color: white;
+  margin-bottom: 25px;
 }
 
 .App-title {
   font-size: 1.5em;
 }
-
+.App-nav {
+  padding-bottom: 15px;
+}
 .App-intro {
   font-size: large;
 }
@@ -44,6 +50,10 @@ body {
   font-size: 20px;
   padding: 5px;
 }
+.week-day-event {
+  font-size: 10px;
+
+}
 .has-event {
   background-color: lightblue;
 }
@@ -63,4 +73,28 @@ body {
 .modal-redactor {
   width: 400px;
   margin: 0 auto;
+}
+
+.form-control {
+  border-color: #454545;
+  color: #454545;
+  font-weight: 700;
+  border-radius: 5px;
+  background: #f9f9f9;
+  padding: 15px 15px;
+  height: 45px;
+  border: 1px solid #333;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  font-family: sans-serif;
+  font-size: 16px;
+  display: inline-block;
+  margin-bottom: 5px;
+}
+
+.form-submit {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  text-transform: uppercase;
+  font-weight: 700;
 }
